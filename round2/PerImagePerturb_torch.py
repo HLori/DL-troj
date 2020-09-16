@@ -31,9 +31,9 @@ class PerImgPert:
         # initial variables
         self.modifier = torch.zeros(shape_pert, dtype=torch.float32, device=self.device, requires_grad=True)
         self.det = torch.ones(shape_pert, dtype=torch.float32, device=self.device, requires_grad=True)   # clip by (0, 255)
-        self.model = torch.load(filepath)
+        self.model = torch.load(filepath, map_location=device)
         self.model = torch.nn.DataParallel(self.model)
-        self.model = self.model.to(device)
+        # self.model = self.model.to(device)
 
     def cal_loss(self, output, labs):
         real = (labs*output).sum(dim=1)

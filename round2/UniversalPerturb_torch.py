@@ -29,11 +29,11 @@ class UniversalPert:
         self.batch_size2 = batch_size2
         self.shape = (self.batch_size + self.batch_size2, self.num_channels, self.image_size, self.image_size)
         self.shape_pert = (1, self.num_channels, self.image_size, self.image_size)
-        self.model = torch.load(filepath)
+        self.model = torch.load(filepath, map_location=device)
 
         self.device = device
         self.model = torch.nn.DataParallel(self.model)
-        self.model = self.model.to(device)
+        # self.model = self.model.to(device)
 
         self.modifier = torch.zeros(self.shape_pert, dtype=torch.float32, device=self.device, requires_grad=True)
         self.det = torch.ones(self.shape_pert, dtype=torch.float32, device=self.device, requires_grad=True)

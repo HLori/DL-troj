@@ -1,6 +1,6 @@
 import numpy as np
 import os
-import cv2
+import skimage.io
 import torch
 from PerImagePerturb_torch import PerImgPert
 from UniversalPerturb_torch import UniversalPert
@@ -8,7 +8,7 @@ import argparse
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2, 3'
 
 
-def load_data(root_dir, num_class, thres=10):
+def load_data(root_dir, thres=10):
     """
     images: torch.Tensor
     labels: numpy.array
@@ -16,18 +16,32 @@ def load_data(root_dir, num_class, thres=10):
     """
     files = os.listdir(root_dir)
     flag = False
-    count = [0] * num_class
+    count = {}
+    # count = [0] * num_class
     for filename in files:
         if not filename.endswith('.png'):
             continue
-        label = eval(filename[6])
-        if count[label] < thres:
-            count[label] += 1
+        label = eval(filename.split('_')[1])
+        count_num = count.get(label, 0)
+        if count_num < thres:
+            count_num += 1
+            count[label] = count_num
         else:
             continue
-        img = cv2.imread(os.path.join(root_dir, filename))
-        img = img.transpose((2, 0, 1)) / 255.0  # transpose to CHW and convert to [0, 1]
-        img = torch.Tensor([img])
+
+        img = skimage.io.imread(os.path.join(root_dir, filename))  # read in RGB
+        img = img[:, :, [2, 1, 0]]  # convert RGB to BGR
+
+        # perform center crop to what the CNN is expecting 224x224
+        h, w, c = img.shape
+        dx = int((w - 224) / 2)
+        dy = int((w - 224) / 2)
+        img = img[dy:dy + 224, dx:dx + 224, :]
+
+        img = np.transpose(img, (2, 0, 1)) / 255.0  # transpose to CHW and convert to [0, 1]
+        img = np.expand_dims(img, 0)  # transpose to NCHW
+        img = torch.Tensor(img)
+
         if not flag:
             images = img
             labels = [label]
@@ -35,7 +49,8 @@ def load_data(root_dir, num_class, thres=10):
         else:
             images = torch.cat((images, img), dim=0)
             labels.append(label)
-    return images, np.array(labels), len(labels)
+        num_class = len(count)
+    return images, np.array(labels), len(labels), num_class
 
 
 def main(model_dir, result_path, test_dir, save_path=None, device='cuda:0', debug=False):
@@ -49,11 +64,10 @@ def main(model_dir, result_path, test_dir, save_path=None, device='cuda:0', debu
     scale = 1.1  # 1.1 * bestarea
     scales = [1.1, 1.2, 1.3, 1.05]
 
-    data_thres = 10
+    data_thres = 5
     # num_class = 5  # for round0 & round1
-    num_class = len(os.listdir(test_dir))   # for round2
 
-    data_shuffle, labels_shuffle, batch_size_all = load_data(test_dir, num_class, data_thres)
+    data_shuffle, labels_shuffle, batch_size_all, num_class = load_data(test_dir, data_thres)
     if device is not None:
         device = torch.device(device)
 
@@ -168,10 +182,10 @@ def main(model_dir, result_path, test_dir, save_path=None, device='cuda:0', debu
     print("Model Done")
 
 
-# for i in range(0, 200):
-#     model_path = './dataset/id-%08d/model.pt' % i
-#     result = './results/id-%08d.txt' % i
-#     data_path = './dataset/id-%08d/example_data' % i
-#     trigger_path = './reverse_trigger/id-%08d' % i
-#     main(model_path, result, data_path, trigger_path, device='cuda:0', debug=True)
-
+for i in range(1000, 1100):
+    model_path = './round2/id-%08d/model.pt' % i
+    result = './results-2/id-%08d.txt' % i
+    data_path = './round2/id-%08d/example_data' % i
+    trigger_path = './reverse_trigger-2/id-%08d' % i
+    main(model_path, result, data_path, trigger_path, device='cuda:0', debug=True)
+# main('./round2/id-00001000/model.pt', 'res.txt', './round2/id-00001000/example_data', debug=True)
