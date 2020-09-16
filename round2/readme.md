@@ -85,3 +85,19 @@ all files and newest code are in `./home/liuhui/DL-Troj`
 UP: probability of all classes in trojan model
 
 Down: probability of all classes in clean model
+
+
+
+**target class in trojan model**:
+
+![img-t](./images/target.png)
+
+****
+
+**not target class in trojan model**:
+
+![img-n](./images/trojan_clean.png)
+
+**all class in clean model**
+
+![img-clean](./images/clean.png)
