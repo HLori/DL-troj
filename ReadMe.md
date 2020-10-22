@@ -6,12 +6,6 @@
 - 直接运行`main.py` 就好
 - 所有数据都在trojai-round0-dataset里 可以copy 一两个模型到/DL-troj/data里面去
 - data/example_data 里是id-6, data/data2里是id-1
-- 问题：`universalPerturb`里的loss一直不怎么变化 永远是target class保持不变 其余class都不怎么能perturb  我怀疑：
-  - 1. 我opt写错了
-    2. loss 里面clip的时候 max的值没有设置好（具体看loss1d loss1d2那里）
-    3. 我也不知道了
-
-
 
 # Struct
 
