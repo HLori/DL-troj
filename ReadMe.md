@@ -2,8 +2,6 @@
 
 - pytorch: 1.5.1  
   - 一定不能是1.6.0 会报错
-- 就在我的账户下弄吧 liuhui nsec
-- 目录是/DL-troj
 - `source activate torchenv` 就是可以用的环境
 - 直接运行`main.py` 就好
 - 所有数据都在trojai-round0-dataset里 可以copy 一两个模型到/DL-troj/data里面去
